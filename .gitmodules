@@ -1,0 +1,3 @@
+[submodule "Stock-price-prediction-service"]
+	path = DE/Stock-price-prediction-service
+	url = https://github.com/minjong3/Stock-price-prediction-service
