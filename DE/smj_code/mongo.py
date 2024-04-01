@@ -7,10 +7,8 @@ import mojito
 import pprint
 import requests
 import pymongo
-from pymongo import MongoClient, WriteConcern
+from pymongo import MongoClient
 from datetime import datetime, timedelta
-
-today = datetime.today().strftime("%Y%m%d")
 
 with open('C:/Users/cc843/Desktop/辛旻宗/주식프로젝트/key/config.yaml', encoding='UTF-8') as f:
     _cfg = yaml.load(f, Loader=yaml.FullLoader)
@@ -30,38 +28,48 @@ broker = mojito.KoreaInvestment(
     mock=True
 )
 
+# 오늘
+today = datetime.today().strftime("%Y%m%d")
+
 # 2019년 11월 19일부터 시작
-start_day = "20200409"
-end_day = start_day
+day = "20200101"
 
 # 다음 데이터 추가
-while end_day <= today:
+while day <= today:
     data = []  # 데이터 저장용 리스트 초기화
     print("리셋")
 
-    # 100개 일봉 데이터 요청
-    resp = broker.fetch_ohlcv(
-        symbol="005930",
-        timeframe='D',
-        adj_price=True,
-        end_day=end_day
-    )
+    while True:
+        # 1개 일봉 데이터 요청
+        resp = broker.fetch_ohlcv(
+            symbol="005930",
+            timeframe='D',
+            adj_price=True,
+            start_day=day,
+            end_day=day
+        )
+        if resp['msg1'] == "초당 거래건수를 초과하였습니다.":
+            print("초당 거래량 초과! 대기")
+            time.sleep(0.5)
+        else:
+            break
+    # 다음날 설정
+    day = (datetime.strptime(day, "%Y%m%d") + timedelta(days=1)).strftime("%Y%m%d")
+    print(day)
 
-    data = resp['output2']  # 응답에서 데이터 추출
-
-    # 다음 100일 날짜 설정
-    end_day = (datetime.strptime(end_day, "%Y%m%d") + timedelta(days=100)).strftime("%Y%m%d")
-    print(end_day)
-    
-    # MongoDB에 적재
+    # MongoDB 설정
     client = pymongo.MongoClient(MONGO_client)
     db = client["mystock"]  # db이름
     users_collection = db["price"]  # 폴더이름
 
-    # 데이터 삽입
-    insert_result = users_collection.insert_many(data)
-    time.sleep(2)
+    # 넣을 데이터
+    data = resp
 
+    # 데이터 삽입
+    insert_result = users_collection.insert_one(data)
+    
+    # 삽입 후 잠시 대기
+    time.sleep(0.2)
     while True:
         # 삽입 결과 확인
         if insert_result.acknowledged:
@@ -69,5 +77,5 @@ while end_day <= today:
             break  # 삽입이 성공하면 루프 종료
         else:
             print("Failed to insert data. Waiting for 10 seconds...")
-            time.sleep(10)  # 10초 대기
+            time.sleep(0.2)  # 0.2초 대기
             continue  # 삽입이 실패하면 다시 시도
