@@ -21,6 +21,7 @@ CANO = _cfg['CANO']
 ACNT_PRDT_CD = _cfg['ACNT_PRDT_CD']
 DISCORD_WEBHOOK_URL = _cfg['DISCORD_WEBHOOK_URL']
 URL_BASE = _cfg['URL_BASE']
+MONGO_client = _cfg['mongodb']
 
 broker = mojito.KoreaInvestment(
     api_key=APP_KEY,
@@ -29,14 +30,8 @@ broker = mojito.KoreaInvestment(
     mock=True
 )
 
-# 2022년 12월 30일부터 시작
-start_day = "20200101"
-end_day = start_day
-
-from pymongo import MongoClient, WriteConcern
-
-# 2022년 12월 30일부터 시작
-start_day = "20230101"
+# 2019년 11월 19일부터 시작
+start_day = "20200409"
 end_day = start_day
 
 # 다음 데이터 추가
@@ -59,9 +54,9 @@ while end_day <= today:
     print(end_day)
     
     # MongoDB에 적재
-    client = pymongo.MongoClient("mongodb://localhost:27017")
-    db = client["root"]  # db이름
-    users_collection = db["stock"]  # 폴더이름
+    client = pymongo.MongoClient(MONGO_client)
+    db = client["mystock"]  # db이름
+    users_collection = db["price"]  # 폴더이름
 
     # 데이터 삽입
     insert_result = users_collection.insert_many(data)
