@@ -46,8 +46,8 @@ plot_raw_data()
 df_train = data[['Date','Close']]
 df_train = df_train.rename(columns={"Date": "ds", "Close": "y"})
 
-m = Prophet()
-m.fit(df_train)
+m = Prophet() # maybe this 
+m.fit(df_train) # and this part can be done else where and then I can just call trained model
 future = m.make_future_dataframe(periods=period)
 forecast = m.predict(future)
 
