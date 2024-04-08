@@ -32,7 +32,7 @@ broker = mojito.KoreaInvestment(
 today = datetime.today().strftime("%Y%m%d")
 
 # 2019년 11월 19일부터 시작
-day = "20200101"
+day = "20190101"
 
 # 다음 데이터 추가
 while day <= today:
@@ -48,9 +48,10 @@ while day <= today:
             start_day=day,
             end_day=day
         )
+        time.sleep(0.5)
         if resp['msg1'] == "초당 거래건수를 초과하였습니다.":
             print("초당 거래량 초과! 대기")
-            time.sleep(0.5)
+            time.sleep(0.3)
         else:
             break
     # 다음날 설정
@@ -59,8 +60,8 @@ while day <= today:
 
     # MongoDB 설정
     client = pymongo.MongoClient(MONGO_client)
-    db = client["mystock"]  # db이름
-    users_collection = db["price"]  # 폴더이름
+    db = client["root"]  # db이름
+    users_collection = db["stock"]  # 폴더이름
 
     # 넣을 데이터
     data = resp
