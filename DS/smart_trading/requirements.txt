@@ -31,6 +31,7 @@ multitasking==0.0.11
 numpy==1.26.4
 packaging==24.0
 pandas==2.2.1
+patsy==0.5.6
 peewee==3.17.1
 pillow==10.3.0
 plotly==5.20.0
@@ -47,10 +48,12 @@ referencing==0.34.0
 requests==2.31.0
 rich==13.7.1
 rpds-py==0.18.0
+scipy==1.13.0
 six==1.16.0
 smmap==5.0.1
 soupsieve==2.5
 stanio==0.5.0
+statsmodels==0.14.1
 streamlit==1.33.0
 tenacity==8.2.3
 toml==0.10.2
