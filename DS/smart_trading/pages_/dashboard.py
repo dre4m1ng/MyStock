@@ -7,6 +7,27 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import date
+import plotly.graph_objects as go
+import pandas as pd
+
+def plot_candlestick_chart(data):
+    """
+    Plots a candlestick chart for the given data.
+
+    Args:
+    - data (DataFrame): The stock price data.
+    """
+    fig = go.Figure(data=[go.Candlestick(x=data.index,
+                                         open=data['Open'],
+                                         high=data['High'],
+                                         low=data['Low'],
+                                         close=data['Close'])])
+    
+    fig.update_layout(title='Candlestick Chart', xaxis_title='Date', yaxis_title='Price')
+    fig.update_xaxes(type='category')
+    fig.update_layout(xaxis_rangeslider_visible=False)  # Hide the range slider
+    return fig
+
 
 def calculate_historical_volatility(data):
     log_returns = np.log(data['Adj Close'] / data['Adj Close'].shift(1))
@@ -18,6 +39,76 @@ def calculate_rsi(data, window=14):
     loss = (-delta.where(delta < 0, 0)).rolling(window=window).mean()
     RS = gain / loss
     return 100 - (100 / (1 + RS))
+
+def plot_rsi_and_price(data, ticker):
+    # Create subplots with shared x-axis for better comparison
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
+    
+    # Plot stock price on the first subplot
+    ax1.plot(data['Date'], data['Adj Close'], label='Adj Close', color='blue')
+    ax1.set_title(f"{ticker} Stock Price")
+    ax1.set_ylabel('Price')
+    ax1.legend(loc="upper left")
+    
+    # Plot RSI on the second subplot
+    ax2.plot(data['Date'], data['RSI'], label='RSI', color='purple')
+    ax2.axhline(70, linestyle='--', color='red', label='Overbought (70)')
+    ax2.axhline(30, linestyle='--', color='green', label='Oversold (30)')
+    ax2.set_title('Relative Strength Index (RSI)')
+    ax2.set_ylabel('RSI')
+    ax2.set_xlabel('Date')
+    ax2.legend(loc="upper left")
+    
+    plt.tight_layout()  # Adjust layout to make room for the shared x-label
+    st.pyplot(fig)
+
+
+def calculate_bollinger_bands(data, window=20, num_of_std=2):
+    """
+    Calculate Bollinger Bands for the given data.
+
+    Args:
+    - data (DataFrame): The stock price data.
+    - window (int): The moving average window size.
+    - num_of_std (int): The number of standard deviations to use for the bands.
+
+    Returns:
+    - A DataFrame with Bollinger Band columns added.
+    """
+    # Calculate the moving average (middle band)
+    data['middle_band'] = data['Adj Close'].rolling(window=window).mean()
+    
+    # Calculate the standard deviation
+    std_dev = data['Adj Close'].rolling(window=window).std()
+    
+    # Calculate the upper and lower bands
+    data['upper_band'] = data['middle_band'] + (std_dev * num_of_std)
+    data['lower_band'] = data['middle_band'] - (std_dev * num_of_std)
+    
+    return data
+
+def plot_bollinger_bands(data):
+    """
+    Plot the Bollinger Bands along with the stock's adjusted closing price.
+
+    Args:
+    - data (DataFrame): The stock price data with Bollinger Bands calculated.
+    """
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(data['Date'], data['Adj Close'], label='Adj Close', color='blue')
+    ax.plot(data['Date'], data['middle_band'], label='Middle Band (SMA)', color='orange')
+    ax.plot(data['Date'], data['upper_band'], label='Upper Band', linestyle='--', color='green')
+    ax.plot(data['Date'], data['lower_band'], label='Lower Band', linestyle='--', color='red')
+    
+    ax.fill_between(data['Date'], data['upper_band'], data['lower_band'], color='grey', alpha=0.1)
+    
+    ax.set_title('Bollinger Bands')
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Price')
+    ax.legend()
+    
+    st.pyplot(fig)
+
 
 def perform_seasonal_decomposition(data, model='multiplicative'):
     """
@@ -55,58 +146,97 @@ def perform_seasonal_decomposition(data, model='multiplicative'):
     plt.tight_layout()
     return fig
 
+def get_watchlist_data(watchlist, start_date, end_date):
+    """Fetch and store closing prices for each ticker in the watchlist."""
+    watchlist_data = pd.DataFrame()
+    
+    for ticker in watchlist:
+        ticker_data = yf.download(ticker, start=start_date, end=end_date)
+        if not ticker_data.empty:
+            # Use 'Close' for actual closing prices; adjust if needed
+            watchlist_data[ticker] = ticker_data['Close']
+            
+    return watchlist_data
+
+
+def plot_watchlist_comparison(watchlist_data):
+    """Plot an overlaid line chart for the watchlist stocks."""
+    fig = go.Figure()
+    
+    for ticker in watchlist_data.columns:
+        fig.add_trace(go.Scatter(x=watchlist_data.index, y=watchlist_data[ticker], mode='lines', name=ticker))
+        
+    fig.update_layout(title='Watchlist Comparison', xaxis_title='Date', yaxis_title='Price', legend_title='Ticker')
+    return fig
+
 def show_dashboard():
     st.title('Stock Analysis Dashboard')
 
-    # Example for fetching and displaying stock data
     ticker = st.sidebar.text_input('Enter Stock Ticker', value='AAPL').upper()
-    # User inputs for selecting the date range
     start_date = st.sidebar.date_input('Start Date', value=date(2021, 1, 1))
     end_date = st.sidebar.date_input('End Date', value=date.today())
 
-    # Fetching data based on user input
     data = yf.download(ticker, start=start_date, end=end_date)
 
     if not data.empty:
-        data.reset_index(inplace=True)  # Ensure that 'Date' is a column, not the index
-        # Display some data
-        st.write(f"Displaying data for: {ticker}")
-        st.line_chart(data['Close'])
+        data.reset_index(inplace=True)  # Ensure that 'Date' is a column
 
-        # Display Historical Volatility
-        hist_vol = calculate_historical_volatility(data)
-        st.write(f"Historical Volatility: {hist_vol:.2%}")
+        # Tabs for different analyses including the watchlist
+        tab1, tab2, tab3, tab4, tab5, watchlist_tab = st.tabs([
+        "Overview", 
+        "Candlestick Chart", 
+        "Bollinger Bands", 
+        "Price & RSI Analysis", 
+        "Seasonal Decomposition", 
+        "Watchlist"
+        ])
 
-         # Calculate RSI
-        data['RSI'] = calculate_rsi(data)
+        with tab1:
+            st.write(f"Displaying data for: {ticker}")
+            st.line_chart(data['Close'])
 
-        # Plot RSI with overbought and oversold lines
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(data['Date'], data['RSI'], label='RSI')
-        ax.axhline(70, linestyle='--', color='red', label='Overbought (70)')
-        ax.axhline(30, linestyle='--', color='green', label='Oversold (30)')
-        ax.set_ylabel('RSI')
-        ax.set_title(f"RSI for {ticker}")
-        ax.legend()
-        st.pyplot(fig)
+        with tab2:
+            # Display Candlestick Chart
+            st.plotly_chart(plot_candlestick_chart(data.set_index('Date')), use_container_width=True)
 
-        # Plot ACF and PACF as an example
-        daily_returns = data.set_index('Date')['Adj Close'].pct_change().dropna()
+        with tab3:
+            # Calculate and Plot Bollinger Bands
+            data_with_bands = calculate_bollinger_bands(data)
+            plot_bollinger_bands(data_with_bands)
+        
+        with tab4:
+            # Display Historical Volatility
+            hist_vol = calculate_historical_volatility(data)
+            st.write(f"Historical Volatility: {hist_vol:.2%}")
 
-        fig, ax = plt.subplots(figsize=(10, 6))
-        plot_acf(daily_returns, ax=ax)
-        st.pyplot(fig)
+            # Calculate RSI
+            data['RSI'] = calculate_rsi(data)
+            
+            # Plot RSI and stock price for comparison
+            plot_rsi_and_price(data, ticker)  # Assuming you've implemented a function like the one suggested earlier
 
-        fig, ax = plt.subplots(figsize=(10, 6))
-        plot_pacf(daily_returns, ax=ax)
-        st.pyplot(fig)
-
-        # Seasonal Decomposition
-        st.write("Seasonal Decomposition Analysis")
-        # Perform and display the dynamic seasonal decomposition
-        fig = perform_seasonal_decomposition(data.set_index('Date'), model='multiplicative')
-        st.pyplot(fig)
+        with tab5:
+            # Seasonal Decomposition
+            st.write("Seasonal Decomposition Analysis")
+            # Ensure data is prepared with 'Date' as index if needed for seasonal_decompose
+            data_for_decomp = data.set_index('Date') if 'Date' in data else data
+            if 'Adj Close' in data_for_decomp:
+                # Perform and display the dynamic seasonal decomposition
+                fig = perform_seasonal_decomposition(data_for_decomp, model='multiplicative')
+                st.pyplot(fig)
+            else:
+                st.write("Seasonal decomposition requires 'Adj Close' in the dataset.")            
+        # Consider placing additional or less frequently accessed analyses in expanders or additional tabs
+        with watchlist_tab:
+            watchlist_input = st.text_area("Enter stock tickers separated by commas (e.g., AAPL,MSFT,GOOGL)", value="AAPL,MSFT")
+            watchlist = [ticker.strip().upper() for ticker in watchlist_input.split(',')]
+            
+            # Fetch and plot data for the watchlist
+            watchlist_data = get_watchlist_data(watchlist, start_date, end_date)
+            if not watchlist_data.empty:
+                st.plotly_chart(plot_watchlist_comparison(watchlist_data), use_container_width=True)
+            else:
+                st.error("No data available for the specified tickers or date range.")
 
     else:
         st.write("No data available for this ticker.")
-        
