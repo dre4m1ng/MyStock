@@ -6,6 +6,7 @@ import pprint
 import json
 import pymysql
 import time
+from datetime import datetime
 
 with open('C:/Users/cc843/Desktop/辛旻宗/주식프로젝트/key/config.yaml', encoding='UTF-8') as f:
     _cfg = yaml.load(f, Loader=yaml.FullLoader)
@@ -25,8 +26,10 @@ client = pymongo.MongoClient(MONGO_client)
 db = client["root"]  # db이름
 users_collection = db["stock"]  # 폴더이름
 
+# 요청일에 대한 데이터 반환
+today = datetime.today().strftime("%Y%m%d")
 query = {
-    "output2.stck_bsop_date": {"$exists": True}
+    "output2.stck_bsop_date": f'{today}'
 }
 
 cursor = users_collection.find(query)
