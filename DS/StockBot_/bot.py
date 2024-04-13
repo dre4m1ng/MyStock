@@ -92,12 +92,48 @@ async def price(ctx, quo="MSFT"):
     URL = "https://finance.yahoo.com/quote/" + quo
     page = requests.get(URL)
     soup = BeautifulSoup(page.text, "html.parser")
+    alldata = soup.find_all("tbody")
+    
     try:
-        current_price = soup.find_all("div", {"class":"My(6px) Pos(r) smartphone_Mt(6px)"})[0].find_all("span")[0]
-        change = soup.find_all("div", {"class":"My(6px) Pos(r) smartphone_Mt(6px)"})[0].find_all("span")[1]
-        await ctx.send(quo.upper() + "\t" + current_price.text + "\t" + change.text)
+        table1 = alldata[0].find_all("tr")
     except:
-        await ctx.send("No data found")
+        table1=None
+
+    try:
+        table2 = alldata[1].find_all("tr")
+    except:
+        table2 = None
+    l={}
+    u=list()
+
+    for i in range(0,len(table1)):
+        try:
+            table1_td = table1[i].find_all("td")
+        except:
+            table1_td = None 
+
+        l[table1_td[0].text] = table1_td[1].text 
+        u.append(l)
+        l={}
+
+    for i in range(0,len(table2)):
+        try:
+            table2_td = table2[i].find_all("td")
+        except:
+            table2_td = None 
+
+        l[table2_td[0].text] = table2_td[1].text 
+        u.append(l)
+        l={}
+
+    await ctx.send(quo.upper() + "\t" + u[0]['Previous Close'])
+
+    # try:
+    #     current_price = soup.find_all("div", {"class":"My(6px) Pos(r) smartphone_Mt(6px)"})[0].find_all("span")[0]
+    #     change = soup.find_all("div", {"class":"My(6px) Pos(r) smartphone_Mt(6px)"})[0].find_all("span")[1]
+    #     await ctx.send(quo.upper() + "\t" + current_price.text + "\t" + change.text)
+    # except:
+    #     await ctx.send("No data found")
 
 @bot.command(name='profile', help='Returns the profile/about info of a given stock.')
 async def profile(ctx, quo="MSFT"):
