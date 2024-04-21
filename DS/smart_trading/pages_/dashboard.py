@@ -10,9 +10,44 @@ from datetime import date
 import plotly.graph_objects as go
 import pandas as pd
 
+# def plot_candlestick_chart(data):
+#     """
+#     Plots a candlestick chart for the given data.
+
+#     Args:
+#     - data (DataFrame): The stock price data.
+#     """
+#     fig = go.Figure(data=[go.Candlestick(x=data.index,
+#                                          open=data['Open'],
+#                                          high=data['High'],
+#                                          low=data['Low'],
+#                                          close=data['Close'])])
+    
+#     fig.update_layout(title='Candlestick Chart', xaxis_title='Date', yaxis_title='Price')
+#     fig.update_xaxes(type='category')
+#     fig.update_layout(xaxis_rangeslider_visible=False)  # Hide the range slider
+#     return fig
+
+
+def calculate_support_resistance(data, window=20):
+    """
+    Calculate rolling maximum (resistance) and minimum (support) of the stock's price.
+    
+    Args:
+    - data (DataFrame): The stock price data.
+    - window (int): The rolling window size to calculate support and resistance levels.
+    
+    Returns:
+    - data (DataFrame): The modified DataFrame with new columns for support and resistance.
+    """
+    data['Resistance'] = data['High'].rolling(window=window).max()
+    data['Support'] = data['Low'].rolling(window=window).min()
+    return data
+
+
 def plot_candlestick_chart(data):
     """
-    Plots a candlestick chart for the given data.
+    Plots a candlestick chart with support and resistance lines for the given data.
 
     Args:
     - data (DataFrame): The stock price data.
@@ -22,8 +57,14 @@ def plot_candlestick_chart(data):
                                          high=data['High'],
                                          low=data['Low'],
                                          close=data['Close'])])
-    
-    fig.update_layout(title='Candlestick Chart', xaxis_title='Date', yaxis_title='Price')
+
+    # Add resistance line
+    fig.add_trace(go.Scatter(x=data.index, y=data['Resistance'], name='Resistance', line=dict(color='red', width=1.5)))
+
+    # Add support line
+    fig.add_trace(go.Scatter(x=data.index, y=data['Support'], name='Support', line=dict(color='green', width=1.5)))
+
+    fig.update_layout(title='Candlestick Chart with Support & Resistance', xaxis_title='Date', yaxis_title='Price')
     fig.update_xaxes(type='category')
     fig.update_layout(xaxis_rangeslider_visible=False)  # Hide the range slider
     return fig
@@ -196,8 +237,10 @@ def show_dashboard():
             st.line_chart(data['Close'])
 
         with tab2:
-            # Display Candlestick Chart
-            st.plotly_chart(plot_candlestick_chart(data.set_index('Date')), use_container_width=True)
+            # Calculate Support and Resistance
+            data_with_levels = calculate_support_resistance(data)
+            # Display Candlestick Chart with Support and Resistance
+            st.plotly_chart(plot_candlestick_chart(data_with_levels.set_index('Date')), use_container_width=True)
 
         with tab3:
             # Calculate and Plot Bollinger Bands
