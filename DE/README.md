@@ -13,7 +13,7 @@
 ---
 # 구축 메뉴얼
 ## Architecture
-![](Mystock-architecture.png)
+![](MyStock-architecture.png)
 ## Install Components
 
 ### Airflow
