@@ -1,5 +1,6 @@
 # MyStock
 
+phase2 : 2024.03.12Tue ~ 2024.05.08Wed
 phase1 : 2024.01.12Fri ~ 2024.03.06Wed
 
 
@@ -8,11 +9,8 @@ phase1 : 2024.01.12Fri ~ 2024.03.06Wed
 - [ ] 제테크를 위한 경제 공부
 
 ## 작업방향
-- [ ] 개별적인 자료 수집 및 공유
+- [ ] 개별적인 작업 진행, 자료 수집 및 공유
 - [ ] 주간 작업 진행 상황 공유
-
-## 개선옵션
-- [ ] 공동 작업 시간 설정(?)
 
 ## 공유자료
 ### 서적
@@ -28,16 +26,8 @@ phase1 : 2024.01.12Fri ~ 2024.03.06Wed
 
 
 
-## DS1 : momentum strategy
+## DS : Strategic Analysis
 
-reference : https://2ecolab.tistory.com/32
-
-
-## DS2 : stock prediction competition
-
-reference : https://dacon.io/competitions/official/235857/codeshare
-
-
-## DE : backtest pipeline
+## DE : Data Pipeline
 
 
