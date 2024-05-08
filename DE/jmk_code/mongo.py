@@ -1,9 +1,6 @@
 from datetime import datetime
 import time
-import yaml
-import pandas as pd
 import mojito
-import requests
 import pymongo
 from pymongo import MongoClient
 
@@ -15,11 +12,8 @@ load_dotenv()
 APP_KEY = os.getenv("APP_KEY")
 APP_SECRET = os.getenv("APP_SECRET")
 ACCESS_TOKEN = ""
-# CANO = _cfg['CANO']
 CANO = os.getenv("CANO")
-# ACNT_PRDT_CD = _cfg['ACNT_PRDT_CD']
 ACNT_PRDT_CD = os.getenv("ACNT_PRDT_CD")
-# DISCORD_WEBHOOK_URL = _cfg['DISCORD_WEBHOOK_URL']
 URL_BASE = os.getenv('URL_BASE')
 
 MONGO_client = os.getenv("MONGODB_URI")
