@@ -9,6 +9,16 @@
 - [ ] 시각화(Grafana)
 - [ ] Airflow로 데이터 파이프라인 자동화
 - [ ] 모델 백테스트 기능 추가
+- [ ] 매수, 매도 기능 추가
+- [ ] 디스코드 알림 기능 추가
+
+# 코드 설명
+```bash
+mojito 모듈을 사용한 주식 데이터 적재
+https://pypi.org/project/mojito2/
+한국투자증권 api로 받아온 response를 MongoDB에 적재
+이후 필요한 데이터들을 분류하여 MySQL에 적재
+```
 
 ---
 # 구축 메뉴얼
