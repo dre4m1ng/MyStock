@@ -1,10 +1,9 @@
 # TODO
-- [x]  [민종님 깃허브](https://github.com/minjong3/Stock-price-prediction-service)기초로 아키텍쳐 구축
-- [v] Dockerizing
-- [v] DB 스키마 설계
-- [v] 한국투자증권 api 사용하여 일봉 데이터 가져오는 코드 작성
-- [v] 데이터 적재
-- [v] jenkins 빌드 테스트 job 등록
+- [x] Dockerizing
+- [x] DB 스키마 설계
+- [x] 한국투자증권 api 사용하여 일봉 데이터 가져오는 코드 작성
+- [x] 데이터 적재
+- [x] jenkins 빌드 테스트 job 등록
 - [ ] DS분들이 작성한 모델 탑재
 - [ ] 시각화(Grafana)
 - [ ] Airflow로 데이터 파이프라인 자동화
